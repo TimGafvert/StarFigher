@@ -7,11 +7,7 @@ package StarFighter;
 import java.awt.Color;
 import java.awt.Graphics2D;
 
-/**
- * Implement simple robot that follows a target.
- *
- * @author fsjlepak
- */
+
 public class Robot extends CharacterBase {
     // Who robot is following
 

@@ -1,14 +1,16 @@
 package StarFighter;
 
 import java.awt.*;
+import java.util.Random;
 
 public class Player extends CharacterBase {
 
     public double dx, dy, dxOld, dyOld, HP, EP, speed = 2,
-            maxEP = 100, maxHP = 100, genEP = .5, armor;
-    public int credits = 00000, missiles = 20;
-    public boolean bankLeft, bankRight, shieldON, laserFiring;
-    private int frame;
+            maxEP = 100, maxHP = 100, genEP = .1, armor, laserDamage = 10;
+    public int credits = 2000, missiles = 20, thrusters = 0, evasionTimer = 0;
+    public boolean bankLeft, bankRight, shieldSwitch = true, shieldON, shieldMatrix, shieldPlasma, laserFiring, evading,
+            missileFabricatorSwitch, missileFabricator;
+    private int frame, missileParts;
     private int afterBurner1X = 0, afterBurner2X = 0, afterBurner3X = 0;
     private int afterBurner1Y = 0, afterBurner2Y = 0, afterBurner3Y = 0;
     private int r = 0, g = 0, b = 205;
@@ -23,6 +25,72 @@ public class Player extends CharacterBase {
         EP = maxEP;
     }
 
+    public void toggleShield() {
+        shieldSwitch = !shieldSwitch;
+    }
+
+    public void toggleMissileFabricator() {
+        missileFabricatorSwitch = !missileFabricatorSwitch;
+    }
+
+    public void upgrade(String s) {
+        if (null != s) {
+            switch (s) {
+                case "HP":
+                    maxHP += 25;
+                    HP += 25;
+                    armor += 0.1;
+                    break;
+                case "EP":
+                    maxEP += 25;
+                    genEP += .025;
+                    break;
+                case "Speed":
+                    speed += .5;
+                    thrusters += 1;
+                    break;
+                case "Laser":
+                    laserDamage += 2.5;
+                    break;
+                case "ShieldMatrix":
+                    shieldMatrix = true;
+                    break;
+                case "ShieldPlasma":
+                    shieldPlasma = true;
+                    break;
+                case "MissileFabricator":
+                    missileFabricator = true;
+                    missileFabricatorSwitch = true;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    public void interactWith(Character c, double d) {
+        if (collidesWith(c)) {
+            if (!evading && d > 5) {
+                Random rand = new Random();
+                int n = rand.nextInt(100) + 1;
+                if (n < thrusters * 10) {
+                    evading = true;
+                    evasionTimer = 30;
+                }
+            }
+            //check if it is a collision with a ship
+            // more than 5 damage is a projectile
+            //a ship on ship collision will still cause damage reguardless of evasion
+            if (evading && d > 5) {
+
+            } else {
+
+                takeDamage(d);
+            }
+        }
+    }
+
+    @Override
     public void takeDamage(double d) {
         if (d < 0) {
             HP += maxHP / (100 / -d);
@@ -33,8 +101,9 @@ public class Player extends CharacterBase {
                     EP = 0;
                     shieldON = false;
                     takeDamage(d - EP);
+                } else {
+                    EP -= d;
                 }
-                EP -= d;
             } else {
                 double r = 0;
                 if (!(d <= 0)) {
@@ -43,16 +112,26 @@ public class Player extends CharacterBase {
                 HP -= (d - r);
             }
 
-            if (flashingTimer < 16) {
-                flashingTimer = 18;
-            }
+            flashingTimer = 18;
+
             if (HP <= 0) {
                 die();
             }
         }
     }
 
+    @Override
     public double getDiameter() {
+        if (shieldON) {
+            return 60;
+        }
+        return 20;
+    }
+
+    private double getRealDiameter() {
+        if (evading) {
+            return 25;
+        }
         return 20;
     }
 
@@ -65,10 +144,32 @@ public class Player extends CharacterBase {
         return EP;
     }
 
+    public double getLaserDamage() {
+        return laserDamage;
+    }
+
     @Override
     public void update() {
         if (!isAlive()) {
             return;
+        }
+        if (missileFabricatorSwitch && missileFabricator && EP > 2) {
+            missileParts += 1;
+            EP -= 0.05;
+        }
+        if (missileParts == 60) {
+            missileParts = 0;
+            missiles += 1;
+        }
+        if (!shieldSwitch) {
+            shieldON = false;
+        }
+        if (EP > 5 && shieldSwitch) {
+            shieldON = true;
+        }
+        evasionTimer--;
+        if (evasionTimer <= 0) {
+            evading = false;
         }
         if (HP > maxHP) {
             HP = maxHP;
@@ -76,9 +177,21 @@ public class Player extends CharacterBase {
         if (EP <= 1) {
             shieldON = false;
         }
-        if (!(EP >= maxEP) && (!shieldON) && (!laserFiring)) {
+        if (laserFiring) {
+            EP -= 0.1;
+        }
+        if (shieldON && !shieldMatrix) {
+            EP -= 0.05;
+        } else if (shieldON && shieldMatrix) {
+            EP -= 0.025;
+        }
+        if (EP < maxEP) {
             EP += genEP;
         }
+        if (EP > maxEP) {
+            EP = maxEP;
+        }
+
         if (flashingTimer == 0) {
             colorSwap = false;
         }
@@ -104,9 +217,21 @@ public class Player extends CharacterBase {
         setCenter(x0 + vecX, y0 + vecY);
     }
 
+    //if a bullet takes x.999 it will ignore it. we don't want bullets to die if they were evaded
+    @Override
     public double getCollisionDamage() {
+        double shieldDamage = 0;
+        if (shieldON && shieldPlasma) {
+            shieldDamage = 20;
+        }
+        //do some rounding to prevent Double trouble
+        double newCollision = Math.round((shieldDamage + 4.999) * 1000.0) / 1000.0;
+        if (evading) {
+            return newCollision;
+        } else {
+            return collisionDamage + shieldDamage;
+        }
 
-        return collisionDamage;
     }
 
     @Override
@@ -117,7 +242,7 @@ public class Player extends CharacterBase {
         if (isAlive()) {
             if (!colorSwap) {
                 return ship;
-            } else { 
+            } else {
                 return ship2;
             }
         } else {
@@ -127,7 +252,7 @@ public class Player extends CharacterBase {
 
     public int checkBankLeft() {
         if (bankLeft) {
-            return (int) (getDiameter() / 2);
+            return (int) (getRealDiameter() / 2);
         } else {
             return 0;
         }
@@ -135,7 +260,7 @@ public class Player extends CharacterBase {
 
     public int checkBankRight() {
         if (bankRight) {
-            return (int) -(getDiameter() / 2);
+            return (int) -(getRealDiameter() / 2);
         } else {
             return 0;
         }
@@ -144,17 +269,9 @@ public class Player extends CharacterBase {
     public void draw(Graphics2D gc) {
         // Offset the corner of our circle so it's drawn with the correct 
         // center.
-        double DIAM = getDiameter();
+        double DIAM = getRealDiameter();
         double x1 = x - DIAM / 2;
         double y1 = y - DIAM / 2;
-
-//        afterBurner3X = afterBurner2X;
-//            afterBurner3Y = afterBurner2Y;
-//            afterBurner2X = afterBurner1X;
-//            afterBurner2Y = afterBurner1Y;
-//            afterBurner1X = (int) dxOld;
-//            afterBurner1Y = (int) dyOld;
-//
         if (frame > 1) {
             afterBurner3X = afterBurner2X;
             afterBurner3Y = afterBurner2Y;
@@ -217,23 +334,52 @@ public class Player extends CharacterBase {
             gc.fillOval((int) x1, (int) y1, (int) DIAM, (int) DIAM);
         }
 
+        Font font = new Font("Serif", Font.BOLD, 12);
+        gc.setFont(font);
+
+        //HULL POINTS
         Color HPcolor = new Color(50, 205, 50, 255);
         gc.setColor(HPcolor);
-        gc.drawRect(25, 250 - (int) maxHP, 20, (int) maxHP);
-        gc.fillRect(25, 250 - (int) HP, 20, (int) HP);
+        gc.drawRect(25, 250 - (int) maxHP, 35, (int) maxHP);
+        gc.fillRect(25, 250 - (int) HP, 35, (int) HP);
+        int intHP = (int) HP;
+        int intMaxHP = (int) maxHP;
+        gc.setColor(Color.WHITE);
+        gc.drawString(intHP + "/" + intMaxHP, 23, 260);
+        gc.setColor(HPcolor);
+        gc.drawString("HP", 23, 270);
 
+        //ENERGY POINTS
         Color EPcolor = new Color(0, 191, 255, 255);
         gc.setColor(EPcolor);
-        gc.drawRect(50, 250 - (int) maxEP, 20, (int) maxEP);
-        gc.fillRect(50, 250 - (int) EP, 20, (int) EP);
+        gc.drawRect(70, 250 - (int) maxEP, 35, (int) maxEP);
+        gc.fillRect(70, 250 - (int) EP, 35, (int) EP);
+        int intEP = (int) EP;
+        int intMaxEP = (int) maxEP;
+        gc.setColor(Color.WHITE);
+        gc.drawString(intEP + "/" + intMaxEP, 68, 260);
+        gc.setColor(EPcolor);
+        gc.drawString("EP", 68, 270);
+
+        //EVASION
+        if (evading) {
+            gc.setColor(Color.WHITE);
+            int xInt = (int) x;
+            int yInt = (int) y;
+            gc.drawString("EVADE", xInt - 22, yInt + 50 - evasionTimer * 2);
+        }
 
         Color shieldColor = new Color(70, 130, 180, 100);
+        if (shieldPlasma) {
+            shieldColor = new Color(180, 70, 130, 100);
+        }
         gc.setColor(shieldColor);
         if (shieldON) {
-            gc.fillOval((int) (x - 30), (int) (y - 30), (int) (60), (int) (60));
+            gc.fillOval((int) (x - DIAM * 1.5), (int) (y - DIAM * 1.5), (int) (DIAM * 3), (int) (DIAM * 3));
         }
 
         bankLeft = false;
         bankRight = false;
     }
+
 }

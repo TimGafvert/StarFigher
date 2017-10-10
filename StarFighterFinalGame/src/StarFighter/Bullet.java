@@ -8,13 +8,8 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.Random;
 
-/**
- * Implement simple robot that follows a target.
- *
- *
- */
 public class Bullet extends CharacterBase {
-    // Who robot is following
+   
 
     private Character target;
     // Speed of character
@@ -49,8 +44,11 @@ public class Bullet extends CharacterBase {
         return true;
     }
 
+        // check for the 0.999 to know that this was an evade.
     public void takeDamage(double d) {
-        die();
+       if (d != 4.999 && d != 24.999) {
+            die();
+        }
     }
 
     @Override

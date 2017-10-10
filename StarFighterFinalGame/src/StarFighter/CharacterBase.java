@@ -16,18 +16,17 @@ import java.awt.Graphics2D;
  */
 public abstract class CharacterBase implements Character {
 
-    /**
-     * All characters are circles of same diameter, by default.
-     */
+    
     public double diameter = 10;
     public static final int defaultBounty = 0;
     public double hullPoints;
     private boolean alive;
     public boolean colorSwap,dieing,explodeChange;
     public int flashingTimer,explodeTimer,explodeSize;
-    public double defaultCollisionDamage = 1;
+    public double defaultCollisionDamage = 1, RATE = 2;
     // Center of circle
     public double x, y;
+    public Color redExplosion, yellowExplosion;
 
     @Override
     public double getCollisionDamage() {
@@ -64,7 +63,9 @@ public abstract class CharacterBase implements Character {
         x = x0;
         y = y0;
         alive = true;
-        hullPoints = 100;        
+        hullPoints = 100;     
+        redExplosion = new Color(255, 0, 0, 200);
+        yellowExplosion = new Color(255, 255, 0, 200);
     }
 
     // Must implement in subclasses.
@@ -139,13 +140,15 @@ public abstract class CharacterBase implements Character {
     }
     
 
-    public void die() {           
+    @Override
+    public void die() { 
         alive = false;
     }
 
     public void draw(Graphics2D g) {
         // Offset the corner of our circle so it's drawn with the correct 
         // center.
+        
         double DIAM = getDiameter();
         double x1 = x - DIAM / 2;
         double y1 = y - DIAM / 2;

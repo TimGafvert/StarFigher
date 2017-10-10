@@ -9,20 +9,14 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 
-/**
- * Implement simple robot that follows a target.
- *
- * @author fsjlepak
- */
 public class Drone extends CharacterBase {
-    // Who robot is following
 
     private int frame, afterBurner1X, afterBurner1Y;
     private Character target;
     // Speed of character
     private static final double RATE = 3;
     private int r = 150, g = 150, b = 150, ammo, launchTimer;
-    private boolean bankLeft, bankRight, running, firing,launched;
+    private boolean bankLeft, bankRight, running, firing, launched;
     private double vecX, vecY;
 
     public double getCollisionDamage() {
@@ -64,13 +58,16 @@ public class Drone extends CharacterBase {
         if (!isAlive()) {
             return;
         }
-        if (getDiameter()<explodeTimer)
+        if (getDiameter() < explodeTimer) {
+            Sound.play("EnemyShipDeath.wav");
             die();
+        }
+        
         if (hullPoints <= 0) {
             dieing = true;
         }
         if (dieing) {
-            explodeTimer++;
+            explodeTimer+=2;
         }
 
         if (explodeTimer > 0) {
@@ -88,16 +85,12 @@ public class Drone extends CharacterBase {
             flashingTimer--;
 
         }
-        
+
         if (launchTimer < 30) {
             launchTimer++;
         } else {
-            launched = true;            
+            launched = true;
         }
-
-
-
-
 
         double x0 = getX();
         double y0 = getY();
@@ -180,24 +173,26 @@ public class Drone extends CharacterBase {
             } else {
                 gc.setColor(Color.YELLOW);
             }
-            gc.fillOval((int) (x-explodeTimer/2), (int) y, (int) explodeTimer, (int) explodeTimer);
+            gc.fillOval((int) (x - explodeTimer / 2), (int) y, (int) explodeTimer, (int) explodeTimer);
         } else {
 
-        if (firing) {
+            if (firing) {
 
-            gc.setColor(Color.RED);
-            Graphics2D g2 = (Graphics2D) gc;
-            g2.setStroke(new BasicStroke(1));
-            g2.drawLine((int) getX(), (int) getY(), (int) target.getX(), (int) target.getY());
-            if((int)getX() != (int)afterBurner1X){
-            target.takeDamage(.1);
-            ammo--;}
+                gc.setColor(Color.RED);
+                Graphics2D g2 = (Graphics2D) gc;
+                g2.setStroke(new BasicStroke(1));
+                g2.drawLine((int) getX(), (int) getY(), (int) target.getX(), (int) target.getY());
+                if ((int) getX() != (int) afterBurner1X) {
+                    target.takeDamage(.1);
+                    ammo--;
+                }
+            }
+
+            Color color1 = new Color(255, 0, 0, 175);
+            gc.setColor(color1);
+            gc.fillOval((int) afterBurner1X - (int) (DRAWDIAM / 4), (int) afterBurner1Y - (int) ((DRAWDIAM) / 4), (int) (DRAWDIAM / 2), (int) (DRAWDIAM) / 2);
+            gc.setColor(getColor());
+            gc.fillOval((int) x1, (int) y1, (int) DRAWDIAM, (int) DRAWDIAM);
         }
-
-        Color color1 = new Color(255, 0, 0, 175);
-        gc.setColor(color1);
-        gc.fillOval((int) afterBurner1X - (int) (DRAWDIAM / 4), (int) afterBurner1Y - (int) ((DRAWDIAM) / 4), (int) (DRAWDIAM / 2), (int) (DRAWDIAM) / 2);
-        gc.setColor(getColor());
-        gc.fillOval((int) x1, (int) y1, (int) DRAWDIAM, (int) DRAWDIAM);
-    }}
+    }
 }

@@ -9,13 +9,7 @@ import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.util.Random;
 
-/**
- * Implement simple robot that follows a target.
- *
- * @author fsjlepak
- */
 public class ShootShip extends CharacterBase {
-    // Who robot is following
 
     Random rand = new Random();
     private int frame, afterBurner1X, afterBurner1Y, bulletTimer = rand.nextInt(60),
@@ -23,7 +17,7 @@ public class ShootShip extends CharacterBase {
     private Character target;
     double diameter = 20;
     // Speed of character
-    private static final double RATE = 4;
+    private double RATE = 4;
     private int r = 89, g = 119, b = 119;
 
     public double getDiameter() {
@@ -60,14 +54,13 @@ public class ShootShip extends CharacterBase {
         if (!isAlive()) {
             return;
         }
-        if (diameter < explodeTimer) {
+        if (diameter * 2 < explodeTimer) {
             die();
         }
-        if (hullPoints <= 0) {
+        if (hullPoints <= 0 && !dieing) {
             dieing = true;
-        }
-        if (dieing) {
-            explodeTimer++;
+            explodeTimer = 5;
+            Sound.play("EnemyShipDeath.wav");
         }
 
         if (explodeTimer > 0) {
@@ -75,11 +68,15 @@ public class ShootShip extends CharacterBase {
                 explodeChange = !explodeChange;
             }
         }
+
+        double x0 = getX();
+        double y0 = getY();
+
+        setCenter(x0, y0 + RATE);
         if (dieing) {
-            explodeTimer++;
+            explodeTimer += 4;
             return;
         }
-
         bulletTimer++;
         if (flashingTimer == 0) {
             colorSwap = false;
@@ -92,10 +89,6 @@ public class ShootShip extends CharacterBase {
 
         }
 
-        double x0 = getX();
-        double y0 = getY();
-        
-        setCenter(x0, y0 + RATE);
     }
 
     @Override
@@ -127,56 +120,53 @@ public class ShootShip extends CharacterBase {
         } else {
             frame++;
         }
+
+        Color color1 = new Color(255, 0, 0, 175);
+        gc.setColor(color1);
+        gc.fillOval((int) afterBurner1X - (int) (DRAWDIAM / 2), (int) afterBurner1Y - (int) (2 * (DRAWDIAM / 3)), (int) DRAWDIAM, (int) DRAWDIAM);
+        int[] xT = new int[3];
+        int[] yT = new int[3];
+        int n;  // count of points
+        // Make a triangle
+        xT[0] = (int) x1 + (int) DRAWDIAM / 2;
+        xT[1] = (int) x1 + (int) (DRAWDIAM * 1.5);
+        xT[2] = (int) x1 - (int) DRAWDIAM / 2;
+        yT[0] = (int) y1 + (int) DRAWDIAM * 2;
+        yT[1] = (int) y1 - (int) DRAWDIAM / 3;
+        yT[2] = (int) y1 - (int) DRAWDIAM / 3;
+
+//        xT[0] = (int) x1 - 42 + 50;
+//        xT[1] = (int) x1 - 42 + 69;
+//        xT[2] = (int) x1 - 42 + 31;
+//        yT[0] = (int) y1 - 55 + 85;
+//        yT[1] = (int) y1 - 55 + 50;
+//        yT[2] = (int) y1 - 55 + 50;
+        n = 3;
+        Polygon myTri = new Polygon(xT, yT, n);  // a triangle   
+
+        if (!colorSwap) {
+            Color ship = new Color(r - 40, g - 40, b - 40, 255);
+            gc.setColor(ship);
+        } else {
+            Color ship = new Color(r + 50, g + 50, b + 50, 255);
+            gc.setColor(ship);
+        }
+
+        gc.fillPolygon(myTri);
+
+        // Note that even though getColor() must be defined by the subclass,
+        // it can still be called by other methods implemented in the abstract
+        // class.
+        gc.setColor(getColor());
+        gc.fillOval((int) x1, (int) y1, (int) DRAWDIAM, (int) DRAWDIAM);
         if (dieing) {
             if (explodeChange) {
-                gc.setColor(Color.RED);
+                gc.setColor(redExplosion);
             } else {
-                gc.setColor(Color.YELLOW);
+                gc.setColor(yellowExplosion);
             }
-            gc.fillOval((int) (x - explodeTimer / 2), (int) y, (int) explodeTimer, (int) explodeTimer);
-        } else {
-            Color color1 = new Color(255, 0, 0, 175);
-            gc.setColor(color1);
-            gc.fillOval((int) afterBurner1X - (int) (DRAWDIAM / 2), (int) afterBurner1Y - (int) (2 * (DRAWDIAM / 3)), (int) DRAWDIAM, (int) DRAWDIAM);
-            int[] x = new int[3];
-            int[] y = new int[3];
-            int n;  // count of points
-            // Make a triangle
-            x[0] = (int) x1 + (int) DRAWDIAM / 2;
-            x[1] = (int) x1 + (int) (DRAWDIAM * 1.5);
-            x[2] = (int) x1 - (int) DRAWDIAM / 2;
-            y[0] = (int) y1 + (int) DRAWDIAM * 2;
-            y[1] = (int) y1 - (int) DRAWDIAM / 3;
-            y[2] = (int) y1 - (int) DRAWDIAM / 3;
-
-
-//        x[0] = (int) x1 - 42 + 50;
-//        x[1] = (int) x1 - 42 + 69;
-//        x[2] = (int) x1 - 42 + 31;
-//        y[0] = (int) y1 - 55 + 85;
-//        y[1] = (int) y1 - 55 + 50;
-//        y[2] = (int) y1 - 55 + 50;
-            n = 3;
-            Polygon myTri = new Polygon(x, y, n);  // a triangle   
-
-            if (!colorSwap) {
-                Color ship = new Color(r - 40, g - 40, b - 40, 255);
-                gc.setColor(ship);
-            } else {
-                Color ship = new Color(r + 50, g + 50, b + 50, 255);
-                gc.setColor(ship);
-            }
-
-            gc.fillPolygon(myTri);
-
-
-            // Note that even though getColor() must be defined by the subclass,
-            // it can still be called by other methods implemented in the abstract
-            // class.
-
-            gc.setColor(getColor());
-            gc.fillOval((int) x1, (int) y1, (int) DRAWDIAM, (int) DRAWDIAM);
-
+            gc.fillOval((int) (x - explodeTimer / 2), (int) y - explodeTimer / 2, (int) explodeTimer, (int) explodeTimer);
         }
+
     }
 }

@@ -3,7 +3,6 @@ package StarFighter;
 
 
 
-import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -12,24 +11,17 @@ import java.awt.event.ActionListener;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
-/**
- * Provides a basic panel for drawing with an animation loop that makes
- * use of simple interfaces for animation and interaction.
- * @author jlepak
- */
 public class AnimationPanel extends JPanel implements ActionListener {
-    GameDraw draw;
-    GameControl control;
+    private final StarFighterDraw DRAW;
     Timer timer;
-    double frameRate = 70.0;
+    double frameRate = 60.0;
     
-    AnimationPanel(GameDraw draw, GameControl control) {
-        this.draw = draw;
-        this.control = control;
-        // Set input handlers based on control object
-        addMouseListener(control.getMouseListener());
-        addKeyListener(control.getKeyListener());
-        addMouseMotionListener(control.getMouseMotionListener());
+    AnimationPanel(StarFighterDraw draw) {
+        this.DRAW = draw;
+        // Set input handlers
+        addMouseListener(DRAW.getMouseListener());
+        addKeyListener(DRAW.getKeyListener());
+        addMouseMotionListener(DRAW.getMouseMotionListener());
         
         // The animation loop will automatically repaint this panel,
         // so ignore other repaint requests.
@@ -48,7 +40,8 @@ public class AnimationPanel extends JPanel implements ActionListener {
     }
     
     // Draw a single frame of animation
-    @Override protected void paintComponent(Graphics g) {
+    @Override 
+    protected void paintComponent(Graphics g) {
         
         // Enable antialiasing for shapes
         Graphics2D g2 = (Graphics2D)g;
@@ -59,10 +52,11 @@ public class AnimationPanel extends JPanel implements ActionListener {
                 RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         
         // Use animator object to draw a single frame
-        draw.draw(g2, this);
+        DRAW.draw(g2, this);
     }
     
     // Handle the timer firing
+    @Override
     public void actionPerformed(ActionEvent e) {
         repaint();
     }

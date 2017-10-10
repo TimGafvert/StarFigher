@@ -3,23 +3,13 @@ package StarFighter;
 /*
  *
  */
-import com.sun.corba.se.spi.oa.OADefault;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.geom.Point2D;
+import static StarFighter.Sound.cleanThreads;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.Timer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-/**
- * Implement game logic for robot game, including robot creation and levels.
- *
- * @author jlepak
- */
+// Implement game logic game
 public class StarFighterGame {
 
     public Timer timer;
@@ -32,13 +22,15 @@ public class StarFighterGame {
     public double proximityDistance;
     public double proximityDistanceTemp;
     public Player player;
-    public LaserBeam LB;
-    public int level, credits, HPLevel, EPLevel, SpeedLevel, LaserLevel, startingWidth;
-    boolean mousePressedLeft, mousePressedRight, laserExhausted, missileAlternate, missileToggle;
-    public Laser laser;
+    public LaserBeamVisual laserVisual;
+    public LaserBeamCollision laserLogic;
+    public int level, credits, HPLevel, EPLevel, SpeedLevel, LaserLevel, startingWidth=500, priceShieldPlasma = 3000, priceShieldMatrix = 3000, priceDynamicLauncher = 2000, priceMissileFabricator = 6000;
+
+    boolean mousePressedLeft, mousePressedRight, laserExhausted, missileAlternate, missileAimed, laserFiring;
     public double endLaserX, endLaserY, mouseX, mouseY, cursorX, cursorY, laserDamage, shipType;
-    private int width, height, levelEnd = 6000;
-    int i = 1, j, bossOnField, levelTimer = 0, missileTimer, missileTimerValue = 20, shipSquadCounter, shipSquadSize;
+    //timers run on frames
+    private final int offsetGUI =200,PLAYABLE_WIDTH, WIDTH, HEIGHT, LEVEL_COMPLETION_TIME = 3000;
+    int enemySpawnTimer = 1, starSpawnTimer, bossOnField, levelTimer = 0, missileTimer, missileTimerValue = 20, shipSquadCounter, shipSquadSize;
     Random rand = new Random();
     double lx;
     double ly;
@@ -47,16 +39,18 @@ public class StarFighterGame {
     double vecY;
 
     StarFighterGame(int width, int height) {
-        this.width = width;
-        this.height = height;
-        ships = new ArrayList<Character>();
-        stars = new ArrayList<Character>();
-        playerForces = new ArrayList<Character>();
-        powerups = new ArrayList<Character>();
-        lineofFire = new ArrayList<Character>();
+        shipType= rand.nextDouble();
+        this.WIDTH = width;
+        this.HEIGHT = height;
+        this.PLAYABLE_WIDTH = width -offsetGUI;
+        ships = new ArrayList<>();
+        stars = new ArrayList<>();
+        playerForces = new ArrayList<>();
+        powerups = new ArrayList<>();
+        lineofFire = new ArrayList<>();
         player = new Player(width / 2, height / 2);
-        laser = new Laser();
-        LB = new LaserBeam(0, 0);
+        laserLogic = new LaserBeamCollision();
+        laserVisual = new LaserBeamVisual(0, 0);
         level = 0;
         HPLevel = 1;
         EPLevel = 1;
@@ -67,20 +61,22 @@ public class StarFighterGame {
         playerForces.add(player);
         missileTimer = missileTimerValue;
     }
+    
+    
 
     public void reset() {
-
-        i = 1;
+        enemySpawnTimer = 1;
         level = 0;
         player = new Player(0, 0);
-        LB = new LaserBeam(0, 0);
+        laserVisual = new LaserBeamVisual(0, 0);
         bossOnField = 0;
         ships.clear();
         playerForces.clear();
         newLevel();
-        int posX = width / 2;
-        int posY = height / 2;
+        int posX = PLAYABLE_WIDTH / 2;
+        int posY = HEIGHT / 2;
         player.setCenter(posX, posY);
+        missileAimed = false;
         HPLevel = 1;
         EPLevel = 1;
         SpeedLevel = 1;
@@ -104,15 +100,6 @@ public class StarFighterGame {
 
     }
 
-    public void toggleShield() {
-        player.shieldON = !player.shieldON;
-    }
-
-    public void toggleMissileMode() {
-
-        missileToggle = !missileToggle;
-    }
-
     public void spawnTier1Enemies() {
 
         if (shipType < (0.3)) {
@@ -130,18 +117,17 @@ public class StarFighterGame {
             newShip = new SteerCrashShip(startingWidth, 0, player);
             ships.add(newShip);
 
-        } else {
-            return;
         }
     }
 
     public void spawnShips() {
 
-        if ((i >= ((100) * bossReduction()))) {
+        if ((enemySpawnTimer >= ((100) * bossReduction()))) {
+           
 
-            if ((levelTimer > levelEnd && levelTimer < levelEnd + 105) && ((level == 1) || (level == 3) || (level == 5))) {
+            if ((levelTimer > LEVEL_COMPLETION_TIME && levelTimer < LEVEL_COMPLETION_TIME + 105) && ((level == 1) || (level == 3) || (level == 5))) {
                 Character newShip;
-                newShip = new CannonFrigate(150, 0, player);
+                newShip = new CannonFrigate(200+ offsetGUI, 0, player);
                 ships.add(newShip);
                 bossOnField += 3;
                 if (level == 3 || level == 5) {
@@ -152,14 +138,14 @@ public class StarFighterGame {
                 }
             }
 
-            if ((levelTimer > levelEnd && levelTimer < levelEnd + 105) && ((level == 2) || (level == 4) || (level == 5))) {
+            if ((levelTimer > LEVEL_COMPLETION_TIME && levelTimer < LEVEL_COMPLETION_TIME + 105) && ((level == 2) || (level == 4) || (level == 5))) {
                 Character newShip;
-                newShip = new DroneFrigate(700, 0, player);
+                newShip = new DroneFrigate(750, 0, player);
                 ships.add(newShip);
                 bossOnField += 3;
                 if (level == 4 || level == 5) {
                     Character othernewShip;
-                    othernewShip = new DroneFrigate(700, 750, player);
+                    othernewShip = new DroneFrigate(750, 750, player);
                     ships.add(othernewShip);
                     bossOnField += 3;
                 }
@@ -167,35 +153,35 @@ public class StarFighterGame {
             if (level > 5) {
                 if (1 + rand.nextInt(100) <= level - 5) {
                     Character newShip;
-                    newShip = new CannonFrigate(rand.nextInt(width - 50), 0, player);
+                    newShip = new CannonFrigate((rand.nextInt(PLAYABLE_WIDTH - 50)+ offsetGUI), 0, player);
                     ships.add(newShip);
-                    i = 0;
+                    enemySpawnTimer = 0;
                 }
 
             }
-            if (i != 0) {
+            if (enemySpawnTimer != 0) {
                 shipType = rand.nextDouble();
-                startingWidth = 50 + rand.nextInt(width - 100);
+                startingWidth = 50 + rand.nextInt(PLAYABLE_WIDTH - 100)+offsetGUI;
                 shipSquadSize = 1;
                 shipSquadCounter = 0;
                 spawnTier1Enemies();
             }
 
-            i = 0;
+            enemySpawnTimer = 0;
         } else {
-            i++;
+            enemySpawnTimer++;
         }
         if ((shipSquadCounter >= (20 - level)) && (shipSquadSize < level)) {
             shipSquadCounter = 0;
             shipSquadSize++;
-            if (startingWidth <= 50) {
-                startingWidth = startingWidth + 50;
+            if (startingWidth <= 200) {
+                startingWidth = startingWidth + 200;
             } else if (startingWidth >= 1316) {
                 startingWidth = startingWidth - 50;
             } else {
                 Random coin = new Random();
                 int x = coin.nextInt(2);
-                if (x == 0) {
+                if (x == 0 && startingWidth > 250) {
                     startingWidth = startingWidth - 50;
                 } else {
                     startingWidth = startingWidth + 50;
@@ -206,41 +192,46 @@ public class StarFighterGame {
             shipSquadCounter++;
         }
 
-        if (j == 30) {
+        if (starSpawnTimer == 30) {
+            cleanThreads();
             Character newStar;
             double starType = rand.nextDouble();
             if (starType < 1) {
-                newStar = new Star(rand.nextInt(width), 0, player);
+                newStar = new Star(rand.nextInt(PLAYABLE_WIDTH)+ offsetGUI, 0, player);
             } else {
-                newStar = new Star(rand.nextInt(width), rand.nextInt(height), player);
+                newStar = new Star(rand.nextInt(PLAYABLE_WIDTH)+ offsetGUI, rand.nextInt(HEIGHT), player);
             }
             stars.add(newStar);
-            j = 0;
+            starSpawnTimer = 0;
         } else {
-            j++;
+            starSpawnTimer++;
         }
 
     }
 
     public void update() {
-        spawnShips();
+//        Sound.cleanThreads();
+        double pierceThreshold = (0.9 - (LaserLevel * 0.1));
+        if (!levelComplete()) {
+            spawnShips();
+        }
         levelTimer++;
         if (missileTimer < missileTimerValue) {
             missileTimer++;
         }
         proximityDistance = 3000;
         targetConfirmed = player;
-        for (Character s : stars) {
+        stars.stream().map((s) -> {
             s.update();
-            if (s.getY() > StarFighterApp.SIZE2) {
-                ships.remove(s);
-            }
-        }
+            return s;
+        }).filter((s) -> (s.getY() > StarFighterApp.SIZE2+200)).forEachOrdered((s) -> {
+            ships.remove(s);
+        });
 
         //Missile Launcher
-        if (mousePressedRight && missileTimer == missileTimerValue && !(player.missiles == 0)) {
-            Character newMissile = null;
-            if (!missileToggle) {
+        if (mousePressedRight && missileTimer == missileTimerValue && !(player.missiles <= 0)) {
+            Character newMissile;
+            if (!missileAimed && player.missiles > 1) {
                 newMissile = new Missile((int) player.getX() - 20, (int) player.getY() + 12, (int) player.getX() - 20, (int) player.getY() - 2000);
                 playerForces.add(newMissile);
                 ships.add(newMissile);
@@ -248,6 +239,12 @@ public class StarFighterGame {
                 playerForces.add(newMissile);
                 ships.add(newMissile);
                 player.missiles = player.missiles - 2;
+                missileTimer = 0;
+            } else if (!missileAimed) {
+                newMissile = new Missile((int) player.getX(), (int) player.getY() + 12, (int) player.getX(), (int) player.getY() - 2000);
+                playerForces.add(newMissile);
+                ships.add(newMissile);
+                player.missiles = player.missiles - 1;
                 missileTimer = 0;
             } else {
                 if (missileAlternate) {
@@ -267,8 +264,8 @@ public class StarFighterGame {
 
         }
 
-//         Laser collision!!!
-        boolean laserFiring = false;
+//         LaserBeamCollision collision!!!
+        laserFiring = false;
 
         if (player.getEP() < 1) {
             laserExhausted = true;
@@ -285,35 +282,34 @@ public class StarFighterGame {
             endLaserX = (player.getX() + vecX);
             endLaserY = (player.getY() + vecY);
             laserFiring = true;
-            laserDamage = LB.getLaserDamage();
-            player.EP -= .3;
+            laserDamage = player.getLaserDamage();
             player.laserFiring = true;
         } else {
             player.laserFiring = false;
         }
 
-        //Detect the closest enemy to determine laser stopping point and damage target
+        //Detect the closest enemy to determine laserLogic stopping point and damage target
         for (Character a : getCharacters()) {
 
-            if (a.isTargetable() && laserFiring && laser.collisionLaser(player.getX(), player.getY(), a.getX(), a.getY(),
+            if (a.isTargetable() && laserFiring && laserLogic.collisionLaser(player.getX(), player.getY(), a.getX(), a.getY(),
                     endLaserX, endLaserY, (a.getDiameter()) / 2) == true) {
-                //If Player's Energy is above 40%, the laser will pierce
-                if (player.EP / player.maxEP < 0.4) {
+                //If Player's Energy is above the pierce threshold, the laserLogic will pierce
+
+                if (player.EP / player.maxEP < pierceThreshold) {
                     proximityDistanceTemp = (a.dist(player.getX(), player.getY(), a.getX(), a.getY()));
                     if (proximityDistanceTemp < proximityDistance) {
                         targetConfirmed = a;
                         proximityDistance = proximityDistanceTemp;
                     }
 
-                } 
-                else {
+                } else {
                     a.takeDamage(laserDamage);
                 }
             }
         }
 
         //Inflict damage and pierce debris
-        if (player.EP / player.maxEP < 0.4) {
+        if (player.EP / player.maxEP < pierceThreshold) {
             if (targetConfirmed != player && !targetConfirmed.isDieing()) {
                 vecX = proximityDistance * lx / len;
                 vecY = proximityDistance * ly / len;
@@ -323,27 +319,35 @@ public class StarFighterGame {
             }
         }
 
-        //Paint the laser
+//        set the coordinates for the visual effect of the laser
         if (laserFiring) {
-            LB.LaserCoordinates(player.getX(), player.getY(), endLaserX, endLaserY);
+            laserVisual.LaserCoordinates(player.getX(), player.getY(), endLaserX, endLaserY);
         }
 
         //Iterate through all of the objects
         for (Character a : getCharacters()) {
 
-
             // Generates bullets for shooter class units
             if ((a.getBulletTimer() == a.getBulletTimerMax()) && (a.getBulletTimerMax() != 0)) {
                 a.resetBulletTimer();
                 Character newShip = null;
-                if (a.ammotype() == 0) {
-                    newShip = new Bullet((int) a.getX(), (int) a.getY(), player);
-                } else if (a.ammotype() == 1) {
-                    newShip = new AccurateBullet((int) a.getX(), (int) a.getY(), player);
-                } else if (a.ammotype() == 2) {
-                    newShip = new Drone((int) (a.getX() - 10), (int) (a.getY() + 10), player);
-                } else if (a.ammotype() == 3) {
-                    newShip = new LaserBurst((int) (a.getX()), (int) (a.getY()), player);
+                switch (a.ammotype()) {
+                    case 0: 
+                        newShip = new Bullet((int) a.getX(), (int) a.getY(), player);
+//                        Sound.play("src/StarFighter/Gun.wav");
+                        break;
+                    case 1:
+                        newShip = new AccurateBullet((int) a.getX(), (int) a.getY(), player);
+                        Sound.play("Gun.wav");
+                        break;
+                    case 2:
+                        newShip = new Drone((int) (a.getX() - 10), (int) (a.getY() + 10), player);
+                        break;
+                    case 3:
+                        newShip = new LaserBurst((int) (a.getX()), (int) (a.getY()), player);
+                        break;
+                    default:
+                        break;
                 }
 
                 ships.add(newShip);
@@ -368,29 +372,28 @@ public class StarFighterGame {
             //the boolean asks that enemies dont touch powerups and that only players do
             //debris won't trigger collision
             if (playerForces.contains(a)) {
-                for (Character b : ships) {
-                    if (((!(playerForces.contains(b)) && !(a.ammotype() < 0)) || ((a == player) && (b.ammotype() < 0)))
-                            && !(b.isDieing())) {
-                        if (a.collidesWith(b)) {
-                            a.interactWith(b, b.getCollisionDamage());
-                            //missile powerup
-                            if (b.ammotype() == -2) {
-                                player.missiles = player.missiles + 20;
-                            }
-                            //missile hits insta-gib small ships
-                            if (a.ammotype() == 100 && (b.getLevel() == 1)) {
-                                b.die();
-                            } else if (a.ammotype() == 100 && (b.getLevel() == 3)) {
-                                b.takeDamage(2);
-                            } else {
-                                b.interactWith(a, a.getCollisionDamage());
-                            }
-
-                        }
+                ships.stream().filter((b) -> (((!(playerForces.contains(b)) && !(a.ammotype() < 0)) || ((a == player) && (b.ammotype() < 0)))
+                        && !(b.isDieing()))).filter((b) -> (a.collidesWith(b))).map((b) -> {
+                    a.interactWith(b, b.getCollisionDamage());
+                    return b;
+                }).map((b) -> {
+                    //missile powerup
+                    if (b.ammotype() == -2) {
+                        player.missiles = player.missiles + 20;
                     }
-                }
+                    return b;
+                }).forEachOrdered((b) -> {
+                    //missile hit insta-gib small ships
+                    if (a.ammotype() == 100 && (b.getLevel() == 1)) {
+                        b.die();
+                    } else if (a.ammotype() == 100 && b.getLevel() == 3) {
+                        b.takeDamage(2);
+                    } else {
+                        b.interactWith(a, a.getCollisionDamage());
+                    }
+                });
             }
-
+            //Remove dead objects
             if (!a.isAlive()) {
                 ships.remove(a);
                 playerForces.remove(a);
@@ -400,8 +403,8 @@ public class StarFighterGame {
                 }
 
             }
-
-            if ((a.getY() > StarFighterApp.SIZE2) || (a.getY() < 0) || (a.getX() > StarFighterApp.SIZE1)
+            //Remove out of bounds objects, with some buffer for the top area
+            if ((a.getY() > StarFighterApp.SIZE2) || (a.getY() < -200) || (a.getX() > StarFighterApp.SIZE1)
                     || (a.getX() < 0)) {
 
                 if (a.getLevel() != 0) {
@@ -442,16 +445,79 @@ public class StarFighterGame {
 
     public boolean levelComplete() {
 
-        if (levelTimer > levelEnd + 180 && bossOnField == 0) {
-
-            return true;
-        } else {
-            return false;
-        }
+        return levelTimer > LEVEL_COMPLETION_TIME + 180 && bossOnField == 0;
     }
 
     public boolean gameOver() {
         return !player.isAlive();
+
+    }
+
+    public int UpgradeCost(int l) {
+        return (int) (1000 * Math.pow(2, (l - 1)));
+    }
+
+    public void upgradePlayer(String s) {
+
+        if (null != s) {
+            switch (s) {
+                case "HP":
+                    if (player.credits >= UpgradeCost(HPLevel) && HPLevel < 5) {
+                        player.credits -= UpgradeCost(HPLevel);
+                        HPLevel++;
+                        player.upgrade("HP");
+                    }
+                    break;
+                case "EP":
+                    if (player.credits >= UpgradeCost(EPLevel) && EPLevel < 5) {
+                        player.credits -= UpgradeCost(EPLevel);
+                        EPLevel++;
+                        player.upgrade("EP");
+                    }
+                    break;
+                case "Speed":
+                    if (player.credits >= UpgradeCost(SpeedLevel) && SpeedLevel < 5) {
+                        player.credits -= UpgradeCost(SpeedLevel);
+                        SpeedLevel++;
+                        player.upgrade("Speed");
+                    }
+                    break;
+                case "Laser":
+                    if (player.credits >= UpgradeCost(LaserLevel) && LaserLevel < 5) {
+                        player.credits -= UpgradeCost(LaserLevel);
+                        LaserLevel++;
+                        laserVisual.upgradeLaserColor();
+                        player.upgrade("Laser");
+                    }
+                    break;
+                case "DynamicLauncher":
+                    if (player.credits >= priceDynamicLauncher && !missileAimed) {
+                        player.credits -= priceDynamicLauncher;
+                        missileAimed = true;
+                    }
+                    break;
+                case "MissileFabricator":
+                    if (player.credits >= priceMissileFabricator && !player.missileFabricator) {
+                        player.credits -= priceMissileFabricator;
+                        player.upgrade("MissileFabricator");
+                    }
+                    break;
+                case "ShieldMatrix":
+                    if (player.credits >= priceShieldMatrix && !player.shieldMatrix) {
+                        player.credits -= priceShieldMatrix;
+                        player.upgrade("ShieldMatrix");
+                    }
+                    break;
+                case "ShieldPlasma":
+                    if (player.credits >= priceShieldPlasma && !player.shieldPlasma) {
+                        player.credits -= priceShieldPlasma;
+                        player.upgrade("ShieldPlasma");
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
 
     }
 
@@ -464,8 +530,6 @@ public class StarFighterGame {
 
     private class CharIterator implements Iterator<Character> {
 
-        // Track index within robot array; if -1, indicate that 
-        // human should be next.
         int index = -1;
 
         public boolean hasNext() {

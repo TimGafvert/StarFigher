@@ -5,18 +5,14 @@ package StarFighter;
  * the editor.
  */
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.util.Random;
 
-/**
- * Implement simple robot that follows a target.
- *
- * @author fsjlepak
- */
-public class DroneFrigate extends CharacterBase {
-    // Who robot is following
 
+public class DroneFrigate extends CharacterBase {
+  
     Random rand = new Random();
     private int frame, afterBurner1X, afterBurner1Y, bulletTimer = 0,
             bulletTimerMax = 100;
@@ -69,8 +65,9 @@ public class DroneFrigate extends CharacterBase {
         if (getDiameter() < explodeTimer) {
             die();
         }
-        if (hullPoints <= 0) {
+        if (hullPoints <= 0 && !dieing) {
             dieing = true;
+            Sound.play("BigExplosion.wav");
         }
 
         if (explodeTimer > 0) {
@@ -181,6 +178,12 @@ public class DroneFrigate extends CharacterBase {
                     (int) ((y - 10) + 2 * bulletTimer * makingDroneDIAM / 3),
                     (int) (bulletTimer * makingDroneDIAM / 2) + 4,
                     (int) (bulletTimer * makingDroneDIAM / 2) + 4);
+            Font font = new Font("Serif", Font.BOLD, 12);
+            gc.setFont(font);
+            int intHP = (int) hullPoints;
+            int intMaxHP = (int) 10000;
+            gc.setColor(Color.WHITE);
+            gc.drawString(intHP + "/" + intMaxHP, (int) x-30, (int) y +50);
 
         }
     }

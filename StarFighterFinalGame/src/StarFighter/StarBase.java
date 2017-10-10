@@ -8,19 +8,13 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.Random;
 
-/**
- * Implement simple robot that follows a target.
- *
- * 
- */
 public class StarBase extends CharacterBase {
-    // Who robot is following
+    
 
     private Character target;
-    // Speed of character
+  
     Random rand = new Random();
     private double RATE = 4;
-//    private double RATE = 2;
 
     public double getDiameter() {
         return 700;

@@ -6,17 +6,12 @@ package StarFighter;
  */
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.util.Random;
 
-/**
- * Implement simple robot that follows a target.
- *
- * @author fsjlepak
- */
 public class CannonFrigate extends CharacterBase {
-    // Who robot is following
 
     Random rand = new Random();
     private int frame, afterBurner1X, afterBurner1Y, bulletTimer = 0,
@@ -70,14 +65,19 @@ public class CannonFrigate extends CharacterBase {
         if (!isAlive()) {
             return;
         }
+        if ((getBulletTimer() == getBulletTimerMax()-1) && burst == 0) {
+            Sound.play("Gun.wav");
+        }
+        
         if (explosionDiameter < explodeTimer) {
             die();
         }
         if (getDiameter() >= explodeTimer) {
             diameter++;
         }
-        if (hullPoints <= 0) {
+        if (hullPoints <= 0 && !dieing) {
             dieing = true;
+            Sound.play("BigExplosion.wav");
         }
 
         if (explodeTimer > 0) {
@@ -89,6 +89,7 @@ public class CannonFrigate extends CharacterBase {
             explodeTimer++;
             return;
         }
+        if (ammo == 0 && firing) Sound.play("GunReload.wav");
         if (ammo == 0) {
             firing = false;
             reload++;
@@ -97,13 +98,14 @@ public class CannonFrigate extends CharacterBase {
             burst--;
             bulletTimer = bulletTimerMax;
         }
-        if (reload == 150) {
+        if (reload == 180) {
             reload = 0;
             ammo = 50;
             firing = true;
         }
-        if (reload == 60) {
+        if (reload == 90) {
             burst = 20;
+            Sound.play("MachineGun.wav");
         }
         if (firing) {
             bulletTimer++;
@@ -224,6 +226,12 @@ public class CannonFrigate extends CharacterBase {
             g2.setStroke(new BasicStroke(6));
             g2.drawLine((int) (getX() + vecX), (int) (getY() + vecY), (int) (getX() - vecX), (int) (getY() - vecY));
             g2.setStroke(new BasicStroke(1));
+            Font font = new Font("Serif", Font.BOLD, 12);
+            gc.setFont(font);
+            int intHP = (int) hullPoints;
+            int intMaxHP = (int) 10000;
+            gc.setColor(Color.WHITE);
+            gc.drawString(intHP + "/" + intMaxHP, (int) x-30, (int) y +50);
 
         }
     }

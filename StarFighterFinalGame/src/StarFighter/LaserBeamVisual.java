@@ -12,11 +12,11 @@ import java.awt.Graphics2D;
  *
  * @author Tim
  */
-public class LaserBeam extends CharacterBase {
+public class LaserBeamVisual extends CharacterBase {
     private int dx,dy,level = 1;    
     private boolean firing;
-    private double ox,oy,ex,ey,laserDamage = 10;
-    public LaserBeam(int x, int y) {
+    private double ox,oy,ex,ey;
+    public LaserBeamVisual(int x, int y) {
         super(x, y);
         dx = 0;
         dy = 0;
@@ -24,7 +24,6 @@ public class LaserBeam extends CharacterBase {
 
     @Override
     public void update() {
-        return;
     }
     
     public void LaserCoordinates(double ox,double oy, double ex, double ey){
@@ -35,12 +34,8 @@ public class LaserBeam extends CharacterBase {
         firing = true;
     }
     
-    public double getLaserDamage() {
-        return laserDamage;
-    }
     
-    public void upgradeLaserDamage() {
-        laserDamage += 2.5;
+    public void upgradeLaserColor() {
         level += 1;
     }
 //186 85 211      148 0 211      30 144 255      0 245 255       255 20 147

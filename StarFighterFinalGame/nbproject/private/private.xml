@@ -3,13 +3,14 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Lenovo/Documents/NetBeansProjects/StarFighterFinalGame/src/StarFighter/StarFighterGame.java</file>
-            <file>file:/C:/Users/Lenovo/Documents/NetBeansProjects/StarFighterFinalGame/src/StarFighter/StarFigherDraw.java</file>
-            <file>file:/C:/Users/Lenovo/Documents/NetBeansProjects/StarFighterFinalGame/src/StarFighter/AccurateBullet.java</file>
-            <file>file:/C:/Users/Lenovo/Documents/NetBeansProjects/StarFighterFinalGame/src/StarFighter/Player.java</file>
-            <file>file:/C:/Users/Lenovo/Documents/NetBeansProjects/StarFighterFinalGame/src/StarFighter/Drone.java</file>
-            <file>file:/C:/Users/Lenovo/Documents/NetBeansProjects/StarFighterFinalGame/src/StarFighter/LaserStrafer.java</file>
-            <file>file:/C:/Users/Lenovo/Documents/NetBeansProjects/StarFighterFinalGame/src/StarFighter/AnimationPanel.java</file>
+            <file>file:/Users/admin/StarFighter/StarFigher/StarFighterFinalGame/src/StarFighter/Sound.java</file>
+            <file>file:/Users/admin/StarFighter/StarFigher/StarFighterFinalGame/src/StarFighter/Player.java</file>
+            <file>file:/Users/admin/StarFighter/StarFigher/StarFighterFinalGame/src/StarFighter/Missile.java</file>
+            <file>file:/Users/admin/StarFighter/StarFigher/StarFighterFinalGame/src/StarFighter/Drone.java</file>
+            <file>file:/Users/admin/StarFighter/StarFigher/StarFighterFinalGame/src/StarFighter/CannonFrigate.java</file>
+            <file>file:/Users/admin/StarFighter/StarFigher/StarFighterFinalGame/src/StarFighter/StarFighterDraw.java</file>
+            <file>file:/Users/admin/StarFighter/StarFigher/StarFighterFinalGame/src/StarFighter/LaserStrafer.java</file>
+            <file>file:/Users/admin/StarFighter/StarFigher/StarFighterFinalGame/src/StarFighter/StarFighterGame.java</file>
         </group>
     </open-files>
 </project-private>

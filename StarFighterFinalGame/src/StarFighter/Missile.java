@@ -7,15 +7,10 @@ package StarFighter;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Polygon;
 
-/**
- * Implement simple robot that follows a target.
- *
- * @author fsjlepak
- */
+
 public class Missile extends CharacterBase {
-    // Who robot is following
+   
 
     private int frameRear, frameBurn, afterBurner1X, afterBurner1Y, rearOfMissileX, rearOfMissileY;
 
@@ -47,6 +42,7 @@ public class Missile extends CharacterBase {
         rearOfMissileY = (int) y;
         afterBurner1X = (int) x;
         afterBurner1Y = (int) y;
+        Sound.play("MissileWhoosh.wav");
     }
 
     public int ammotype() {
@@ -65,9 +61,9 @@ public class Missile extends CharacterBase {
             die();
         }
 
-        if (hullPoints <= 0) {
+        if (hullPoints <= 0 && !dieing) {
             dieing = true;
-//            collisionDamage = 25;
+            Sound.play("MissileExplosion.wav");
         }
         if (dieing) {
             explodeTimer = explodeTimer + 6;

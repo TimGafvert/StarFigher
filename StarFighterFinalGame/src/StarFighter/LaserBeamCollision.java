@@ -12,7 +12,7 @@ import java.awt.Graphics2D;
  *
  * @author Tim
  */
-public class Laser {
+public class LaserBeamCollision {
 
     private double t, dl, dist, dt, t1, t2, i1X, i1Y, i2X, i2Y, originX, originY, targetX, targetY, endX, endY, radius,
             lineOriginEnd, dx, dy, closePtOnLnX, closePtOnLnY,

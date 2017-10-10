@@ -8,16 +8,12 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.Random;
 
-/**
- * Implement simple robot that follows a target.
- *
- * @author fsjlepak
- */
+
 public class PowerUp_Missiles extends CharacterBase {
-    // Who robot is following
+   
 
     private Character target;
-    // Speed of character
+    
 
     @Override
     public double getCollisionDamage() {

@@ -7,16 +7,12 @@ package StarFighter;
 import java.awt.Color;
 import java.awt.Graphics2D;
 
-/**
- * Implement simple robot that follows a target.
- *
- * 
- */
+
 public class AccurateBullet extends CharacterBase {
-    // Who robot is following
+
 
     private Character target;
-    // Speed of character
+ 
     private static final double RATE = 6;
     private int blinkCounter = 0;
     private boolean  finalVecSet;
@@ -46,10 +42,14 @@ public class AccurateBullet extends CharacterBase {
     public boolean isProjectile() {
         return true;
     }
-
+    
+    // check for the 0.999 to know that this was an evade.
     public void takeDamage(double d) {
-        die();
+       if (d != 4.999 && d != 24.999) {
+            die();
+            
         }
+    }
        
     @Override
     public double getCollisionDamage() {

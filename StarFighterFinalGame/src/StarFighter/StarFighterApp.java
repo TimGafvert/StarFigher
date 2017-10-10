@@ -4,10 +4,7 @@ import java.awt.Dimension;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
-/**
- * Test routine for our animation/game.
- *
- */
+
 public class StarFighterApp {
 
     public static final int SIZE1 = 1366;
@@ -21,9 +18,9 @@ public class StarFighterApp {
 
         // Set up the game controls and panel
         StarFighterGame game = new StarFighterGame(SIZE1, SIZE2);
-        StarFigherDraw draw = new StarFigherDraw(SIZE1, SIZE2, game);
-        AnimationPanel gamePanel = new AnimationPanel(draw, draw);
-        //draw.setAnimator(gamePanel);
+        StarFighterDraw draw = new StarFighterDraw(SIZE1, SIZE2, game);
+        AnimationPanel gamePanel = new AnimationPanel(draw);
+       
         frame.setContentPane(gamePanel);
 
         //Display the window.
@@ -37,12 +34,8 @@ public class StarFighterApp {
     public static void main(String[] args) {
         // Schedule a job for the event-dispatching thread:
         // creating and showing this application's GUI.
-        SwingUtilities.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-                buildGUI();
-            }
+        SwingUtilities.invokeLater(() -> {
+            buildGUI();
         });
     }
 }

@@ -9,13 +9,9 @@ import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.util.Random;
 
-/**
- * Implement simple robot that follows a target.
- *
- * @author fsjlepak
- */
+
 public class LaserStrafer extends CharacterBase {
-    // Who robot is following
+
     
     Random rand = new Random();
     private int frame, afterBurner1X, afterBurner1Y,bulletTimer = rand.nextInt(60),
@@ -23,8 +19,8 @@ public class LaserStrafer extends CharacterBase {
     private Character target;
     public double diameter = 20;
     // Speed of character
-    private static final double RATE = 2;
-    private int r = 11, g = 135, b = 135;
+    private double RATE = 2;
+    private int r = 11, g = 135, b = 135, d;
     private boolean bankLeft, bankRight,goRight;
     private double vecX, vecY;
     
@@ -35,6 +31,7 @@ public class LaserStrafer extends CharacterBase {
         Random rand = new Random();
         if (rand.nextInt(2)==1)
         goRight= true;
+        this.RATE = 1;
     }
     
     public double getCollisionDamage() {
@@ -79,10 +76,15 @@ public class LaserStrafer extends CharacterBase {
         if (!isAlive()) {
             return;
         }
-        if (diameter<explodeTimer)
+        if ((getBulletTimer() == getBulletTimerMax()-1)) {
+            Sound.play("LaserSmall.wav");
+        }
+        if (diameter*2<explodeTimer)
             die();
-        if (hullPoints <= 0) {
+        if (hullPoints <= 0 && !dieing) {
             dieing = true;
+            explodeTimer = 5;
+            Sound.play("EnemyShipDeath.wav");
         }
         
         if (explodeTimer > 0) {
@@ -90,8 +92,25 @@ public class LaserStrafer extends CharacterBase {
                 explodeChange = !explodeChange;
             }
         }
+        // Update based on direction vector
+        if (!dieing) {
+        if ( getX() < 30 + 200) {
+            goRight = true;
+        }
+        if (getX() > 1336) {
+            goRight = false;
+        }
+        
+        if (goRight) {
+            d = 4;
+        } else {
+            d = -4;
+        }
+        }
+        
+        setCenter(getX() + d, getY()+ RATE);
         if (dieing) {
-            explodeTimer++;
+            explodeTimer+=4;
             return;
         }
 
@@ -107,21 +126,7 @@ public class LaserStrafer extends CharacterBase {
 
         }
         
-        if ( getX() < 30) {
-            goRight = true;
-        }
-        if (getX() > 1336) {
-            goRight = false;
-        }
-        int d;
-        if (goRight) {
-            d = 4;
-        } else {
-            d = -4;
-        }
         
-        // Update based on direction vector
-        setCenter(getX() + d, getY()+ 1);
     }
 
     @Override
@@ -139,23 +144,6 @@ public class LaserStrafer extends CharacterBase {
         }
     }
 
-    public int checkBankLeft() {
-        if (bankLeft) {
-            int DRAWDIAM = (int) (8 * diameter / 10);
-            return +(DRAWDIAM / 2);
-        } else {
-            return 0;
-        }
-    }
-
-    public int checkBankRight() {
-        if (bankRight) {
-            int DRAWDIAM = (int) (8 * diameter / 10);
-            return -(DRAWDIAM / 2);
-        } else {
-            return 0;
-        }
-    }
 
     public void draw(Graphics2D gc) {
         // Offset the corner of our circle so it's drawn with the correct 
@@ -170,41 +158,24 @@ public class LaserStrafer extends CharacterBase {
         } else {
             frame++;
         }
-        if (dieing) {
-            if (explodeChange) {
-                gc.setColor(Color.RED);
-            } else {
-                gc.setColor(Color.YELLOW);
-            }
-            gc.fillOval((int) (x-explodeTimer/2), (int) y, (int) explodeTimer, (int) explodeTimer);
-        } else {
+        
         Color color1 = new Color(255, 0, 0, 175);
         gc.setColor(color1);
         gc.fillOval((int) afterBurner1X - (int) (DRAWDIAM / 2), (int) afterBurner1Y - (int) ( (DRAWDIAM)), (int) DRAWDIAM, (int) DRAWDIAM);
 
-        if (vecX < -.3) {
-            bankLeft = true;
-        }
-
-        if (vecX > .3) {
-            bankRight = true;
-        }
-
-        int[] x = new int[3];
-        int[] y = new int[3];
+        int[] xT = new int[3];
+        int[] yT = new int[3];
         int n;  // count of points
         // Make a triangle
-        x[0] = (int) x1 + (int) DRAWDIAM / 2;
-        x[1] = (int) x1 + (int) (DRAWDIAM * 1.5) + checkBankRight() - checkBankLeft() / 4;
-        x[2] = (int) x1 - (int) (DRAWDIAM / 2) + checkBankLeft() - checkBankRight() / 4 ;
-        y[0] = (int) y1 + (int) DRAWDIAM * 2;
-        y[1] = (int) y1 - (int) DRAWDIAM / 3;
-        y[2] = (int) y1 - (int) DRAWDIAM / 3;
+        xT[0] = (int) x1 + (int) DRAWDIAM / 2;
+        xT[1] = (int) x1 + (int) (DRAWDIAM * 1.5) ;
+        xT[2] = (int) x1 - (int) (DRAWDIAM / 2)  ;
+        yT[0] = (int) y1 + (int) DRAWDIAM * 2;
+        yT[1] = (int) y1 - (int) DRAWDIAM / 3;
+        yT[2] = (int) y1 - (int) DRAWDIAM / 3;
 
-//+ checkBankRight() - checkBankLeft() / 3
-//+ checkBankLeft() - checkBankRight() / 3
         n = 3;
-        Polygon myTri = new Polygon(x, y, n);  // a triangle   
+        Polygon myTri = new Polygon(xT, yT, n);  // a triangle   
 
         if (!colorSwap) {
             Color ship = new Color(r, g, b, 255);
@@ -217,18 +188,19 @@ public class LaserStrafer extends CharacterBase {
         gc.fillPolygon(myTri);
         gc.setColor(getColor());
         
-        if (bankRight) {
-            gc.fillOval((int) (x1 + DRAWDIAM / 4), (int) (y1), (int) (2 * DRAWDIAM / 3), (int) (DRAWDIAM));
-        } else if (bankLeft) {
-            gc.fillOval((int) (x1 + DRAWDIAM / 16), (int) (y1), (int) (2 * DRAWDIAM / 3), (int) (DRAWDIAM));
-        } else {
+
             gc.fillOval((int) x1, (int) y1, (int) DRAWDIAM, (int) DRAWDIAM);
+
+        if (dieing) {
+            if (explodeChange) {
+                gc.setColor(redExplosion);
+            } else {
+                gc.setColor(yellowExplosion);
+            }
+            gc.fillOval((int) (x - explodeTimer / 2), (int) y - explodeTimer / 2, (int) explodeTimer, (int) explodeTimer);
         }
 
-        bankLeft = false;
-        bankRight = false;
-
-    }}
+    }
 
     
 }
